@@ -37,6 +37,8 @@ for y in range(0,c):
     förvaring.clear() 
 #Printar priset för köpoptionen!
 print(slutnoder)
+
+#Test att se att 0<p<1
 print(p)
     
    
