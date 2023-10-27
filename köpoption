@@ -1,0 +1,57 @@
+
+import math
+#All indata/beräkningar som behövs för att göra optionspriset, har inte hunnit göra volatiltieträknaren än men det går att hitta på samma ställe som man hittar aktiekurs m.m.
+k = float(input("Vad är lösenpriset?"))
+s = float(input("Vad är akitekursen idag"))
+a = float(input("Vad är standardavikelsen"))
+r = 0.04
+q = float(input("Vad är direktavkastningen under perioden"))
+t = float(input("vad är löptiden i år"))
+c = int(input("Hur många steg är trädet?"))
+u = math.exp(a*math.sqrt(t/c))
+d = 1/math.exp(a*math.sqrt(t/c)) 
+p = (math.exp((r-q)*t/c)-d)/(u-d)
+avdrag = math.exp(-r*(t/c))
+
+#test t/c ska vara mindre än print((a**2)/(r-q)**2)
+print((a**2)/(r-q)**2)
+
+#Lop som genererar slutvärderna för trädet, tar nytta utav att d**-i=u**i, subtrahera k för att få optionspriset för köpoption, men spara noll om s=<k
+slutnoder = []
+for i in range(-c,c+1,2):
+  if s*d**i-k > 0:
+    slutnoder.append((s*d**i)-k)
+  else:
+    slutnoder.append(0)
+
+
+#En nested for-loop där inre loopen gör viktade väntevärdet för noden ett steg in och gör avdrag för riskfriaräntan, och den yttre loopen gör att förusättningarna för vad som är i listorna är rätt. 
+#Jag förvarar värderna för ett steg in i listan jag kallar förvaring och sedan tömmer listan som själva beräkningarna sker i och sedan kopierar över förvarningen för
+#att sedan tömma förvarningen, gränserna för inre loopen blir 0 (första elementetet i listan) till c-y där c är antalet steg modellen körs i och y är hur många varv ytre-loopen sker.  
+förvaring = []
+for y in range(0,c):
+    for l in range(0, c-y):
+        förvaring.append(avdrag * (slutnoder[l]*p + slutnoder[l+1]*(1-p)))
+    slutnoder.clear()
+    slutnoder = förvaring.copy()
+    förvaring.clear() 
+#Printar priset för köpoptionen!
+print(slutnoder)
+print(p)
+    
+   
+
+    
+
+
+
+    
+    
+   
+
+    
+
+
+
+    
+    
