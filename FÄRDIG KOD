@@ -1,0 +1,79 @@
+import math
+import yfinance as yf
+#Skriv in tickern för företaget som ska hämtas kolla på yahoo finance  för tickern!
+ticker = ['HM-B.ST']
+data = yf.download(ticker, '2023-9-20')['Adj Close']
+#print(data.head(50)) Om du vill se datan utsrkiven det innanför () är antalet punkter
+xx = []
+
+#Loop för att få ln return av dagar efter varandra
+for i in range(len(data) - 2):
+  xx.append(math.log((data[i + 1]) / (data[i])))
+
+#Medelvärde för ln return
+cc = (sum(xx) / len(xx))
+zz = []
+#Subtrahera medelvärdet från x och täljaren i kvadrat (kolla formel för stdv)
+for i in range(len(xx)):
+  zz.append((xx[i] - cc)**2)
+#Summan av täljaren delat på antalet punkter-1 (kolla formlen)
+aa = sum(zz) / (len(zz) - 1)
+#Extrapolera till årsbasis
+aaa = aa**0.5 * math.sqrt(252)
+print(len(data), " är antalet börsdagar stickprovet av volan görs på")
+print(aaa, " är beräknade volan")
+
+qq = int(
+    input(
+        "vill du skriva in volan själv eller få den automatiskt 1 för auto, annat heltal för själv   "
+    ))
+if qq == 1:
+  a = aaa
+else:
+  a = float(input("Vad är standardavikelsen "))
+
+k = float(input("Vad är lösenpriset? "))
+s = float(input("Vad är akitekursen idag "))
+r = 0.04
+q = float(input("Vad är direktavkastningen under perioden"))
+t = float(input("vad är löptiden i år "))
+print((a**2) / (r - q)**2,
+      "längden på ett tidsteg ska vara kortatre än detta i år ")
+c = int(input("Hur många steg är trädet? "))
+u = math.exp(a * math.sqrt(t / c))
+d = 1 / math.exp(a * math.sqrt(t / c))
+p = (math.exp((r - q) * t / c) - d) / (u - d)
+avdrag = math.exp(-r * (t / c))
+
+jj = int(input("1 för köpoptin ,annan siffra för säljoption "))
+#Lop som genererar slutvärderna för trädet, tar nytta utav att d**-i=u**i, subtrahera k för att få optionspriset för köpoption, men spara noll om s=<k
+slutnoder = []
+if jj == 1:
+  for i in range(-c, c + 1, 2):
+    if s * d**i - k > 0:
+      slutnoder.append((s * d**i) - k)
+    else:
+      slutnoder.append(0)
+
+else:
+  for i in range(-c, c + 1, 2):
+    if k - (s * d**i) > 0:
+      slutnoder.append(k - (s * d**i))
+    else:
+      slutnoder.append(0)
+
+print(slutnoder)
+#En nested for-loop där inre loopen gör viktade väntevärdet för noden ett steg in och den yttre loopen gör att förusättningarna för vad som är i listorna är rätt.
+#Jag förvarar värderna för ett steg in i listan jag kallar förvaring och sedan tömmer listan som själva beräkningarna sker i och sedan kopierar över förvarningen för
+#att sedan tömma förvarningen, gränserna för inre loopen blir 0 (första elementet i listan) tills c-y där c är antalet steg modellen körs i och y är hur många varv ytre-loopen sker.
+förvaring = []
+
+for y in range(0, c):
+  for l in range(0, c - y):
+    förvaring.append(avdrag * (slutnoder[l] * p + slutnoder[l + 1] * (1 - p)))
+  slutnoder.clear()
+  slutnoder = förvaring.copy()
+  förvaring.clear()
+
+print(slutnoder, " Är marknadspriset för denna option")
+print(p)
